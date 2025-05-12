@@ -8,16 +8,16 @@ import 'package:thundergallery/features/thunder_gallery/domain/repositories/phot
 import 'package:thundergallery/features/thunder_gallery/domain/state/gallery_state.dart';
 import 'package:thundergallery/features/thunder_gallery/domain/usecases/fetch_photos_usecase.dart';
 
+
+final galleryNotifierProvider = StateNotifierProvider<GalleryNotifier, GalleryState>((ref) {
+  return GalleryNotifier(FetchPhotosUseCase(ref.read(photoRepositoryProvider)))
+    ..loadPhotos(); // Immediately load photos
+});
+
+
 final photoRepositoryProvider = Provider<PhotoRepository>((ref) {
   return PhotoRepositoryImpl(
     localDataSource: LocalPhotoDataSourceImpl(),
     remoteDataSource: FirebasePhotoDataSource(),
-  );
-});
-
-final galleryNotifierProvider =
-StateNotifierProvider<GalleryNotifier, GalleryState>((ref) {
-  return GalleryNotifier(
-    FetchPhotosUseCase(ref.read(photoRepositoryProvider)),
   );
 });

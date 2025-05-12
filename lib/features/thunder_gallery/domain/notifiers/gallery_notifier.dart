@@ -1,4 +1,5 @@
 // features/thunder_gallery/domain/notifiers/gallery_notifier.dart
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:thundergallery/features/thunder_gallery/domain/entities/photo.dart';
 import 'package:thundergallery/features/thunder_gallery/domain/state/gallery_state.dart';
@@ -15,11 +16,15 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
     try {
       state = state.copyWith(status: GalleryLoadingStatus.loading);
       final photos = await fetchPhotosUseCase.execute();
+      if (photos.isEmpty) {
+        debugPrint('No photos found');
+      }
       state = state.copyWith(
         status: GalleryLoadingStatus.loaded,
         photos: photos,
       );
     } catch (e) {
+      debugPrint('Error loading photos: $e');
       state = state.copyWith(
         status: GalleryLoadingStatus.error,
         errorMessage: e.toString(),
@@ -28,13 +33,18 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
   }
 
   void togglePhotoSelection(String photoId) {
-    final newSelection = Set<String>.from(state.selectedPhotos);
+    final currentState = state;
+    final newSelection = Set<String>.from(currentState.selectedPhotos);
+
     if (newSelection.contains(photoId)) {
       newSelection.remove(photoId);
     } else {
       newSelection.add(photoId);
     }
-    state = state.copyWith(selectedPhotos: newSelection);
+
+    state = currentState.copyWith(
+      selectedPhotos: newSelection,
+    );
   }
 
   void toggleFavorite(String photoId) {
@@ -72,6 +82,8 @@ class GalleryNotifier extends StateNotifier<GalleryState> {
       );
     }
   }
+
+
 
   Future<void> addPhotos(List<Photo> newPhotos) async {
     try {

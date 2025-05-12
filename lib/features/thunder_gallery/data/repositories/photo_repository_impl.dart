@@ -17,28 +17,22 @@ class PhotoRepositoryImpl implements PhotoRepository {
   @override
   Future<List<Photo>> fetchPhotos() async {
     try {
-      debugPrint(kIsWeb ? '🖥️ Loading web photos' : '📱 Loading mobile photos');
+      final local = await localDataSource.getDevicePhotos();
+      final remote = await remoteDataSource.getCloudPhotos().timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          debugPrint('Firestore timeout');
+          return <Photo>[];
+        },
+      );
 
-      final localFuture = localDataSource.getDevicePhotos();
-      final remoteFuture = remoteDataSource.getCloudPhotos();
-
-      final results = await Future.wait([localFuture, remoteFuture]);
-
-      // Cast the results to List<PhotoModel> explicitly
-      final localPhotos = (results[0] as List<PhotoModel>).map((m) => m.toEntity()).toList();
-      final remotePhotos = (results[1] as List<PhotoModel>).map((m) => m.toEntity()).toList();
-
-      return [...localPhotos, ...remotePhotos];
-    } catch (e) {
-      debugPrint('❌ Photo load error: $e');
-      try {
-        // Fallback to just local
-        final localPhotos = await localDataSource.getDevicePhotos();
-        return (localPhotos).map((m) => m.toEntity()).toList();
-      } catch (e) {
-        debugPrint('❌ Fallback failed: $e');
-        return [];
-      }
+      return [
+        ...local.map((m) => m.toPhoto()),
+        ...remote,
+      ];
+    } catch (e, stackTrace) {
+      debugPrint('Error loading photos: $e\n$stackTrace');
+      return [];
     }
   }
 }

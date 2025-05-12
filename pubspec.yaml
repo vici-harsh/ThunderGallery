@@ -9,6 +9,7 @@ environment:
   flutter: '>=3.0.0'
 
 dependencies:
+  permission_handler: ^12.0.0+1
   flutter:
     sdk: flutter
 
@@ -25,6 +26,7 @@ dependencies:
   file_picker: ^6.1.2
   path_provider: ^2.1.1
   cross_file: ^0.3.3
+
 #  file_picker_windows: ^5.3.3
 #  file_picker_macos: ^5.3.3
 #  file_picker_linux: ^5.3.3

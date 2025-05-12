@@ -4,6 +4,7 @@ import 'package:photo_manager/photo_manager.dart';
 import 'package:file_picker/file_picker.dart';
 import '../models/photo_model.dart';
 import '../models/album_model.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 abstract class LocalPhotoDataSource {
   Future<List<PhotoModel>> getDevicePhotos();
@@ -12,12 +13,24 @@ abstract class LocalPhotoDataSource {
 }
 
 class LocalPhotoDataSourceImpl implements LocalPhotoDataSource {
+
   @override
   Future<bool> requestPermission() async {
     if (kIsWeb) return true;
+
     try {
-      final result = await PhotoManager.requestPermissionExtend();
-      return result.isAuth;
+      if (Platform.isAndroid) {
+        // For Android 13+
+        if (await Permission.photos.isGranted) {
+          return true;
+        }
+
+        final status = await Permission.photos.request();
+        return status.isGranted;
+      }
+      // For iOS
+      final status = await Permission.photos.request();
+      return status.isGranted;
     } catch (e) {
       debugPrint('Permission error: $e');
       return false;
@@ -27,11 +40,16 @@ class LocalPhotoDataSourceImpl implements LocalPhotoDataSource {
   @override
   Future<List<PhotoModel>> getDevicePhotos() async {
     try {
+      final hasPermission = await requestPermission();
+      if (!hasPermission) {
+        debugPrint('Permission not granted');
+        return []; // Return empty list instead of throwing
+      }
       if (kIsWeb) return await _getWebPhotos();
       return await _getMobilePhotos();
     } catch (e) {
-      debugPrint('Photo load error: $e');
-      return []; // Return empty list instead of rethrowing
+      debugPrint('Error loading photos: $e');
+      return []; // Return empty list on error
     }
   }
 

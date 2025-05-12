@@ -28,20 +28,28 @@ class PhotoModel {
   factory PhotoModel.fromJson(Map<String, dynamic> json) => _$PhotoModelFromJson(json);
   Map<String, dynamic> toJson() => _$PhotoModelToJson(this);
 
+  // Convert single PhotoModel to Photo
+  Photo toPhoto() {
+    return Photo(
+      id: id,
+      path: path,
+      created: created,
+      size: size,
+      albumId: albumId,
+      metadata: Map.from(metadata),
+    );
+  }
+
+  // Convert list of PhotoModels to Photos
+  static List<Photo> toPhotoList(List<PhotoModel> models) {
+    return models.map((model) => model.toPhoto()).toList();
+  }
+
   @override
   String toString() {
     return 'PhotoModel(id: $id, path: $path, created: $created, size: $size, '
         'albumId: $albumId, metadata: $metadata)';
   }
-
-  Photo toEntity() => Photo(
-    id: id,
-    path: path,
-    created: created,
-    size: size,
-    albumId: albumId,
-    metadata: Map.from(metadata),
-  );
 
   PhotoModel copyWith({
     String? id,
@@ -59,5 +67,12 @@ class PhotoModel {
       albumId: albumId ?? this.albumId,
       metadata: metadata ?? Map.from(this.metadata),
     );
+  }
+}
+
+// Extension for converting lists
+extension PhotoModelListExtension on List<PhotoModel> {
+  List<Photo> toPhotos() {
+    return map((model) => model.toPhoto()).toList();
   }
 }

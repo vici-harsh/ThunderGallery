@@ -36,6 +36,8 @@ class _PhotoGridState extends ConsumerState<PhotoGrid> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(galleryNotifierProvider);
+    debugPrint('Current state: ${state.status}');
+    debugPrint('Photos count: ${state.photos.length}');
     final notifier = ref.read(galleryNotifierProvider.notifier);
 
     // Filter and sort photos
@@ -147,20 +149,17 @@ class _PhotoGridState extends ConsumerState<PhotoGrid> {
       Photo photo,
       GalleryState state,
       ) {
-    if (_isInSelectionMode || state.selectedPhotos.isNotEmpty) {
+    if (state.selectedPhotos.isNotEmpty) {
+      // In selection mode - toggle this photo
       notifier.togglePhotoSelection(photo.id);
-      setState(() {
-        _isInSelectionMode = state.selectedPhotos.isNotEmpty;
-      });
     } else {
+      // Not in selection mode - open photo detail
       context.push('/photo/${photo.id}');
     }
   }
 
   void _handleLongPress(GalleryNotifier notifier, Photo photo) {
+    // Always toggle selection on long press
     notifier.togglePhotoSelection(photo.id);
-    setState(() {
-      _isInSelectionMode = true;
-    });
   }
 }
