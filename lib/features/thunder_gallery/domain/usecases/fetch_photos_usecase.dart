@@ -11,13 +11,10 @@ class FetchPhotosUseCase {
   Future<List<Photo>> execute() async {
     try {
       final photos = await repository.fetchPhotos();
-      if (photos.isEmpty) {
-        throw Exception('No photos available');
-      }
-      return photos;
+      return photos; // Don't throw if empty
     } catch (e) {
       debugPrint('UseCase error: $e');
-      rethrow;
+      return []; // Return empty list instead of rethrowing
     }
   }
 }

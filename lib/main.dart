@@ -57,6 +57,14 @@ class ThunderGalleryApp extends ConsumerWidget {
               path: 'albums',
               builder: (context, state) => const AlbumsScreen(),
             ),
+            GoRoute(
+              path: 'favorites',
+              builder: (context, state) => const FavoritesScreen(),
+            ),
+            GoRoute(
+              path: 'recent',
+              builder: (context, state) => const RecentScreen(),
+            ),
           ],
         ),
       ],

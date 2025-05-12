@@ -9,19 +9,21 @@ class GalleryState {
   final List<Photo> photos;
   final Set<String> selectedPhotos;
   final String? errorMessage;
+  final Set<String> favoritePhotos;
 
   const GalleryState({
     this.status = GalleryLoadingStatus.initial,
     this.photos = const [],
     this.selectedPhotos = const {},
     this.errorMessage,
+    this.favoritePhotos = const {},
   });
 
   GalleryState copyWith({
     GalleryLoadingStatus? status,
     List<Photo>? photos,
     Set<String>? selectedPhotos,
-    String? errorMessage,
+    String? errorMessage, required Set<String> favoritePhotos,
   }) {
     return GalleryState(
       status: status ?? this.status,

@@ -19,19 +19,19 @@ class Photo {
   });
 
   @override
-  String toString() {
-    return 'Photo(id: $id, path: $path, created: $created, size: $size, '
-        'albumId: $albumId, metadata: $metadata)';
-  }
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+          other is Photo &&
+              runtimeType == other.runtimeType &&
+              id == other.id;
 
-  Photo toEntity() => Photo(
-    id: id,
-    path: path,
-    created: created,
-    size: size,
-    albumId: albumId,
-    metadata: Map.from(metadata),
-  );
+  @override
+  int get hashCode => id.hashCode;
+
+  @override
+  String toString() {
+    return 'Photo(id: $id, path: $path)';
+  }
 
   Photo copyWith({
     String? id,

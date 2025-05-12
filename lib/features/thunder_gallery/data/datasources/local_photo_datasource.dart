@@ -14,21 +14,24 @@ abstract class LocalPhotoDataSource {
 class LocalPhotoDataSourceImpl implements LocalPhotoDataSource {
   @override
   Future<bool> requestPermission() async {
-    if (kIsWeb) return true; // Web doesn't need permission dialogs
-    final result = await PhotoManager.requestPermissionExtend();
-    return result.isAuth;
+    if (kIsWeb) return true;
+    try {
+      final result = await PhotoManager.requestPermissionExtend();
+      return result.isAuth;
+    } catch (e) {
+      debugPrint('Permission error: $e');
+      return false;
+    }
   }
 
   @override
   Future<List<PhotoModel>> getDevicePhotos() async {
     try {
-      if (kIsWeb) {
-        return await _getWebPhotos();
-      }
+      if (kIsWeb) return await _getWebPhotos();
       return await _getMobilePhotos();
     } catch (e) {
       debugPrint('Photo load error: $e');
-      rethrow;
+      return []; // Return empty list instead of rethrowing
     }
   }
 
