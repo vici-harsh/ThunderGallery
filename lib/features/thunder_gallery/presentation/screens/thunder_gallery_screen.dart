@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:thundergallery/features/thunder_gallery/domain/providers/gallery_providers.dart';
+import 'package:thundergallery/features/thunder_gallery/domain/providers/view_mode_provider.dart';
 import 'package:thundergallery/features/thunder_gallery/domain/state/gallery_state.dart';
-import 'package:thundergallery/features/thunder_gallery/presentation/widgets/photo_grid.dart';
 import 'package:thundergallery/features/thunder_gallery/presentation/widgets/gallery_app_bar.dart';
-import 'package:thundergallery/features/thunder_gallery/presentation/widgets/gallery_fab.dart';
-import 'package:thundergallery/features/thunder_gallery/presentation/widgets/error_view.dart';
-import 'package:thundergallery/features/thunder_gallery/presentation/widgets/empty_state_view.dart';
+import 'package:thundergallery/features/thunder_gallery/presentation/widgets/photo_grid.dart';
 
 class ThunderGalleryScreen extends ConsumerWidget {
   const ThunderGalleryScreen({super.key});
@@ -14,31 +12,27 @@ class ThunderGalleryScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(galleryNotifierProvider);
+    final viewMode = ref.watch(viewModeProvider);
 
     return Scaffold(
-      appBar: GalleryAppBar(
-        selectedCount: state.selectedPhotos.length,
-      ),
-      body: _buildContent(state, ref),
-      floatingActionButton: const GalleryFAB(),
+      appBar: const GalleryAppBar(),
+      body: _buildContent(state, viewMode),
     );
   }
 
-  Widget _buildContent(GalleryState state, WidgetRef ref) {
+  Widget _buildContent(GalleryState state, ViewMode viewMode) {
     switch (state.status) {
       case GalleryLoadingStatus.initial:
-        return const SizedBox();
+        return const Center(child: CircularProgressIndicator());
       case GalleryLoadingStatus.loading:
         return const Center(child: CircularProgressIndicator());
       case GalleryLoadingStatus.error:
-        return ErrorView(
-          message: state.errorMessage ?? 'An error occurred',
-          onRetry: () => ref.read(galleryNotifierProvider.notifier).loadPhotos(),
-        );
+        return Center(child: Text(state.errorMessage ?? 'Error loading photos'));
       case GalleryLoadingStatus.loaded:
-        return state.photos.isEmpty
-            ? const EmptyStateView()
-            : PhotoGrid(photos: state.photos);
+        return PhotoGrid(
+          photos: state.photos,
+          showFavoritesOnly: viewMode == ViewMode.favorites,
+        );
     }
   }
 }

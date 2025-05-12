@@ -23,12 +23,14 @@ class GalleryState {
     GalleryLoadingStatus? status,
     List<Photo>? photos,
     Set<String>? selectedPhotos,
-    String? errorMessage, required Set<String> favoritePhotos,
+    Set<String>? favoritePhotos,
+    String? errorMessage,
   }) {
     return GalleryState(
       status: status ?? this.status,
       photos: photos ?? this.photos,
       selectedPhotos: selectedPhotos ?? this.selectedPhotos,
+      favoritePhotos: favoritePhotos ?? this.favoritePhotos,
       errorMessage: errorMessage ?? this.errorMessage,
     );
   }
@@ -41,6 +43,7 @@ class GalleryState {
         other.status == status &&
         listEquals(other.photos, photos) &&
         setEquals(other.selectedPhotos, selectedPhotos) &&
+        setEquals(other.favoritePhotos, favoritePhotos) &&
         other.errorMessage == errorMessage;
   }
 
@@ -49,6 +52,7 @@ class GalleryState {
     return status.hashCode ^
     photos.hashCode ^
     selectedPhotos.hashCode ^
+    favoritePhotos.hashCode ^
     errorMessage.hashCode;
   }
 }

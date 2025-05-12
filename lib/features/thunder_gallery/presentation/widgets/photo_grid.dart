@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:thundergallery/features/thunder_gallery/domain/entities/photo.dart';
+import 'package:thundergallery/features/thunder_gallery/domain/notifiers/gallery_notifier.dart';
 import 'package:thundergallery/features/thunder_gallery/domain/providers/gallery_providers.dart';
+import 'package:thundergallery/features/thunder_gallery/domain/state/gallery_state.dart';
 
 class PhotoGrid extends ConsumerStatefulWidget {
   final List<Photo> photos;
@@ -12,6 +14,7 @@ class PhotoGrid extends ConsumerStatefulWidget {
   final bool enableSelection;
   final bool enableFavorites;
   final bool sortByDate;
+  final bool showDates;
 
   const PhotoGrid({
     super.key,
@@ -20,6 +23,7 @@ class PhotoGrid extends ConsumerStatefulWidget {
     this.enableSelection = true,
     this.enableFavorites = true,
     this.sortByDate = true,
+    this.showDates = true,
   });
 
   @override
@@ -27,7 +31,7 @@ class PhotoGrid extends ConsumerStatefulWidget {
 }
 
 class _PhotoGridState extends ConsumerState<PhotoGrid> {
-  bool _isSelectionMode = false;
+  bool _isInSelectionMode = false;
 
   @override
   Widget build(BuildContext context) {
@@ -56,24 +60,14 @@ class _PhotoGridState extends ConsumerState<PhotoGrid> {
         final isFavorite = state.favoritePhotos.contains(photo.id);
 
         return GestureDetector(
-          onTap: () => _handleTap(notifier, photo),
+          onTap: () => _handleTap(context, notifier, photo, state),
           onLongPress: () => _handleLongPress(notifier, photo),
           child: Stack(
             children: [
-              // Photo thumbnail with error handling
               _buildPhotoWidget(photo),
-
-              // Selection overlay
-              if (isSelected && widget.enableSelection)
-                _buildSelectionOverlay(),
-
-              // Favorite badge
-              if (isFavorite && widget.enableFavorites)
-                _buildFavoriteBadge(),
-
-              // Date indicator
-              if (widget.sortByDate)
-                _buildDateIndicator(photo.created),
+              if (isSelected && widget.enableSelection) _buildSelectionOverlay(),
+              if (isFavorite && widget.enableFavorites) _buildFavoriteBadge(),
+              if (widget.showDates) _buildDateIndicator(photo.created),
             ],
           ),
         );
@@ -82,32 +76,28 @@ class _PhotoGridState extends ConsumerState<PhotoGrid> {
   }
 
   Widget _buildPhotoWidget(Photo photo) {
-    try {
-      return kIsWeb
-          ? Image.network(
-        photo.path,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => _buildErrorWidget(),
-      )
-          : Image.file(
-        File(photo.path),
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => _buildErrorWidget(),
-      );
-    } catch (e) {
-      return _buildErrorWidget();
-    }
+    return kIsWeb
+        ? Image.network(
+      photo.path,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => _buildErrorWidget(),
+    )
+        : Image.file(
+      File(photo.path),
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => _buildErrorWidget(),
+    );
   }
 
   Widget _buildSelectionOverlay() {
-    return const Positioned.fill(
+    return Positioned.fill(
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: Colors.black54,
           border: Border.all(color: Colors.blue, width: 2),
         ),
-        child: Center(
-          child: Icon(Icons.check_circle, color: Colors.white, size: 30),
+        child: const Center(
+          child: Icon(Icons.check_circle, color: Colors.white),
         ),
       ),
     );
@@ -117,7 +107,7 @@ class _PhotoGridState extends ConsumerState<PhotoGrid> {
     return const Positioned(
       top: 4,
       right: 4,
-      child: Icon(Icons.favorite, color: Colors.red, size: 20),
+      child: Icon(Icons.favorite, color: Colors.red),
     );
   }
 
@@ -146,15 +136,22 @@ class _PhotoGridState extends ConsumerState<PhotoGrid> {
     return const ColoredBox(
       color: Colors.grey,
       child: Center(
-        child: Icon(Icons.broken_image, color: Colors.white, size: 40),
+        child: Icon(Icons.broken_image, color: Colors.white),
       ),
     );
   }
 
-  void _handleTap(GalleryNotifier notifier, Photo photo) {
-    if (_isSelectionMode || ref.read(galleryNotifierProvider).selectedPhotos.isNotEmpty) {
+  void _handleTap(
+      BuildContext context,
+      GalleryNotifier notifier,
+      Photo photo,
+      GalleryState state,
+      ) {
+    if (_isInSelectionMode || state.selectedPhotos.isNotEmpty) {
       notifier.togglePhotoSelection(photo.id);
-      setState(() => _isSelectionMode = true);
+      setState(() {
+        _isInSelectionMode = state.selectedPhotos.isNotEmpty;
+      });
     } else {
       context.push('/photo/${photo.id}');
     }
@@ -162,6 +159,8 @@ class _PhotoGridState extends ConsumerState<PhotoGrid> {
 
   void _handleLongPress(GalleryNotifier notifier, Photo photo) {
     notifier.togglePhotoSelection(photo.id);
-    setState(() => _isSelectionMode = true);
+    setState(() {
+      _isInSelectionMode = true;
+    });
   }
 }
