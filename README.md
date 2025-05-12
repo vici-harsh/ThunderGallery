@@ -1,5 +1,3 @@
-# thundergallery
-
 Photo Organizer
 
 ## Getting Started
